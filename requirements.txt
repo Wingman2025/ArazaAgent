@@ -1,0 +1,3 @@
+fastapi
+uvicorn
+openai-agents==0.0.13
