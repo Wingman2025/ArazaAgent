@@ -1,13 +1,28 @@
 from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
 from agents import Agent, Runner
 import os
+from dotenv import load_dotenv
 
-# Asegúrate de tener la variable de entorno OPENAI_API_KEY configurada
-# export OPENAI_API_KEY=tu_clave_api
+# Load environment variables locally (optional)
+load_dotenv()
 
 app = FastAPI()
 
-# Definir el agente con instrucciones específicas
+# 🚨 Añadir Middleware CORS aquí
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Puedes restringir esto a tu dominio después
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Comprobar que la API Key esté disponible
+if not os.getenv("OPENAI_API_KEY"):
+    raise ValueError("OPENAI_API_KEY is not set.")
+
+# Definir el agente
 agent = Agent(
     name="Guía de Arazá",
     instructions="""
@@ -17,7 +32,7 @@ Eres un experto en guayaba arazá. Tu rol es doble:
 Hablas de forma entusiasta, amigable, y siempre invitas a probar el arazá.
 Responde siempre de manera clara, cálida y motivadora.
 """,
-    model="gpt-4o"  # Puedes cambiar a "gpt-3.5-turbo" si prefieres
+    model="gpt-4o"
 )
 
 @app.post("/chat")
@@ -28,6 +43,5 @@ async def chat(request: Request):
     if not user_message:
         return {"reply": "Por favor, envíame un mensaje."}
 
-    # Ejecutar el agente de forma asíncrona
     result = await Runner.run(agent, user_message)
     return {"reply": result.final_output}

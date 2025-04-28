@@ -1,3 +1,4 @@
-fastapi
+fastapi[all]
 uvicorn
 openai-agents==0.0.13
+python-dotenv
